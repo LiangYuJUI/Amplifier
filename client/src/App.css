@@ -1,0 +1,465 @@
+/* 全局樣式 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 頭部樣式 */
+.app-header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.app-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.account-info {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.account-address {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 20px;
+  margin-right: 10px;
+}
+
+.owner-badge {
+  background-color: #e74c3c;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+/* 連接錢包按鈕 */
+.btn-connect {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-connect:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* 錢包連接容器 */
+.wallet-connect-container {
+  text-align: center;
+  padding: 50px 20px;
+  max-width: 600px;
+  margin: 50px auto;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-connect-container h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.wallet-connect-container p {
+  margin-bottom: 30px;
+  color: #7f8c8d;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+}
+
+/* 按鈕樣式 */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.btn:last-child {
+  margin-right: 0;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+}
+
+.btn-success {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #27ae60;
+}
+
+.btn-warning {
+  background-color: #f39c12;
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: #d35400;
+}
+
+.btn-back {
+  background-color: transparent;
+  color: #3498db;
+  padding-left: 0;
+}
+
+/* 加載指示器 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+/* 項目列表樣式 */
+.project-list {
+  margin-top: 20px;
+}
+
+.project-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.project-card.inactive {
+  opacity: 0.7;
+}
+
+.project-card h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.project-description {
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+}
+
+.project-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.project-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.project-status.active {
+  color: #2ecc71;
+}
+
+.project-status.inactive {
+  color: #e74c3c;
+}
+
+/* 表單樣式 */
+.project-form, .donation-form {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+/* 項目詳情樣式 */
+.project-details {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  margin-top: 20px;
+}
+
+.project-details h2 {
+  margin-top: 15px;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.project-details .project-info {
+  margin-bottom: 25px;
+}
+
+.project-meta {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.project-actions {
+  display: flex;
+  margin-bottom: 25px;
+}
+
+.beneficiary-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.beneficiary-section h3 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.withdraw-section, .expense-section {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.withdraw-section h4, .expense-section h4 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.records-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.donations-section, .expenses-section {
+  margin-bottom: 30px;
+}
+
+.donations-section h3, .expenses-section h3 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.donations-list, .expenses-list {
+  list-style: none;
+}
+
+.donation-item, .expense-item {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.donation-info, .expense-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.donation-amount, .expense-amount {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.donation-message {
+  font-style: italic;
+  color: #7f8c8d;
+  margin-top: 5px;
+  font-size: 0.9rem;
+}
+
+.expense-recipient {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-header .container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .account-info {
+    margin-top: 10px;
+  }
+  
+  .project-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .form-actions button {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* 錢包連接相關樣式 */
+.connected-wallet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-reconnect {
+  background-color: transparent;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-reconnect:hover {
+  background-color: #4CAF50;
+  color: white;
+  transform: rotate(180deg);
+}
+
+.btn-reconnect i {
+  font-size: 14px;
+}
+
+/* 添加Font Awesome圖標支持 */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

@@ -1,0 +1,232 @@
+This version of µWS is not compatible with your Node.js build:
+
+Error: Cannot find module '../binaries/uws_darwin_arm64_131.node'
+Require stack:
+- /opt/homebrew/lib/node_modules/ganache/node_modules/@trufflesuite/uws-js-unofficial/src/uws.js
+- /opt/homebrew/lib/node_modules/ganache/dist/node/cli.js
+Falling back to a NodeJS implementation; performance may be degraded.
+
+
+ganache v7.9.2 (@ganache/cli: 0.10.2, @ganache/core: 0.10.2)
+Starting RPC server
+
+Available Accounts
+==================
+(0) 0x77905cbbd19663451f6EdE3e4FeEf0ec8f1B7765 (1000 ETH)
+(1) 0xe82750ff8A9D8093E82585606DBFEF2bf04dba03 (1000 ETH)
+(2) 0xBaC86d27539242b301eBf7895317eD6D8583A7cA (1000 ETH)
+(3) 0x1357d05a47C272e2D997a274D55c3f8866A5e044 (1000 ETH)
+(4) 0xE0db31EeF275987F30048905ea18D0D1e3A5Da86 (1000 ETH)
+(5) 0x5D8a75061cF18aA57e453212365656b4a4446b7a (1000 ETH)
+(6) 0x9ba7A46671655b6aDca5ea548C0841d70AFb282F (1000 ETH)
+(7) 0x85E5A916cDfDaC90A3345FBEE0a26C623f884774 (1000 ETH)
+(8) 0x5C2459B93F6371a6307cD5B7583548D9264b0346 (1000 ETH)
+(9) 0xa63BCF2388aE24814df3fFEeDAFFa33AbAf9eb66 (1000 ETH)
+
+Private Keys
+==================
+(0) 0x48d80044e407fe3a80f77769c2421ed2e5880777c0855258f7ae947fb65b5fb4
+(1) 0x458104de37e716f3428cffd4187a5d4013e7a9906a11368a5b033f4ab547a05a
+(2) 0x06ab499fad314d5d6d52b9bd011ec8d967b5612f4bb3a78524cac3cd44c5ef4d
+(3) 0x7d0687165a2ed4ddf8c18e14ec9f372f286e7bf74ced5511019b12c0052d677d
+(4) 0x8a2a85580fbd5667721b2570d1273277b2f1d2804418f9fe9d5e2156d99a92dd
+(5) 0x61a0aa2f567811a47068cf35057026566a444e3096a21a7e3557a3651ddb6bd3
+(6) 0x4bca142d96f077724b89c2100f332b4533cd48dee4eb296160f834744345e620
+(7) 0x7a723d3ce93ad2ae226eaf7340e0a6b9da253cc17b3735ae33c0c7503928cd2a
+(8) 0x76aaf810ab2ae5cd19dbc7ea1bc23a9848f011a8fd7888c626847776e3dd50dd
+(9) 0x68b40e003f7fc2d7eb21a6fbc69ddb8d913a742f5d5f8833a824e7dd4157bd66
+
+HD Wallet
+==================
+Mnemonic:      cupboard prefer kidney wait injury garbage raccoon mistake bonus word vast arena
+Base HD Path:  m/44'/60'/0'/0/{account_index}
+
+Default Gas Price
+==================
+2000000000
+
+BlockGas Limit
+==================
+30000000
+
+Call Gas Limit
+==================
+50000000
+
+Chain
+==================
+Hardfork: shanghai
+Id:       1337
+
+RPC Listening on 127.0.0.1:8545
+eth_blockNumber
+net_version
+eth_accounts
+eth_getBlockByNumber
+eth_accounts
+net_version
+eth_getBlockByNumber
+eth_getBlockByNumber
+net_version
+eth_getBlockByNumber
+eth_estimateGas
+net_version
+eth_blockNumber
+eth_getBlockByNumber
+eth_estimateGas
+eth_getBlockByNumber
+eth_gasPrice
+eth_sendTransaction
+
+  Transaction: 0xb685a4ae3e678ac0632a9f248c4ebd8afcac56a4c50cd951a05d987b2d761f7e
+  Contract created: 0x71905294b6c5593906cd1f63f6b9aa77e71f6e4e
+  Gas usage: 1911976
+  Block number: 1
+  Block time: Mon Jun 02 2025 02:49:04 GMT+0800 (Taiwan Standard Time)
+
+eth_getTransactionReceipt
+eth_getCode
+eth_getTransactionByHash
+eth_getBlockByNumber
+eth_getBalance
+eth_chainId
+eth_blockNumber
+eth_getBalance
+eth_getBlockByNumber
+net_version
+net_version
+net_version
+net_version
+eth_blockNumber
+(node:38166) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 close listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+eth_blockNumber
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_chainId
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_getCode
+eth_gasPrice
+eth_call
+eth_call
+eth_call
+eth_call
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_getCode
+eth_call
+eth_call
+eth_call
+eth_call
+eth_call
+eth_blockNumber
+eth_getTransactionCount
+eth_sendRawTransaction
+
+  Transaction: 0x102fe2338680a484647ccec394f21d68466fe9eecbc789b88a04fc31d9ae0473
+  Gas usage: 21000
+  Block number: 2
+  Block time: Mon Jun 02 2025 03:05:12 GMT+0800 (Taiwan Standard Time)
+
+eth_getTransactionReceipt
+eth_blockNumber
+eth_getBlockByHash
+eth_getBalance
+eth_gasPrice
+eth_blockNumber
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_getBalance
+eth_call
+eth_call
+eth_call
+eth_call
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+eth_blockNumber
+
+Received shutdown signal: SIGINT
+Shutting down…
+
+Received shutdown signal: SIGINT
+Server has been shut down
