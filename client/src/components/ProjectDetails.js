@@ -21,9 +21,40 @@ function ProjectDetails({
   });
   const [loading, setLoading] = useState(false);
   
-  // 使用Web3.utils而不是依賴window.web3
+  // 使用Web3.utils而不是依賴window.web3，並格式化ETH金額顯示
   const fromWei = (value) => {
-    return Web3.utils.fromWei(value.toString(), 'ether');
+    try {
+      const ethValue = Web3.utils.fromWei(value.toString(), 'ether');
+      // 格式化ETH金額，顯示最多4位小數
+      return parseFloat(parseFloat(ethValue).toFixed(4)).toString();
+    } catch (error) {
+      console.error("金額轉換錯誤:", error, value);
+      return "0";
+    }
+  };
+  
+  // 計算進度百分比
+  const calculateProgress = () => {
+    try {
+      const raised = parseFloat(fromWei(project.totalDonated));
+      const goal = parseFloat(fromWei(project.fundraisingGoal));
+      const percentage = (raised / goal) * 100;
+      
+      // 返回進度百分比，允許超過100%
+      return percentage;
+    } catch (error) {
+      console.error("進度計算錯誤:", error);
+      return 0;
+    }
+  };
+  
+  // 格式化進度顯示
+  const formatProgress = (percentage) => {
+    if (percentage >= 100) {
+      return `${Math.floor(percentage)}% 🎉`;
+    } else {
+      return `${Math.floor(percentage)}%`;
+    }
   };
   
   // 加載捐款和支出記錄
@@ -103,16 +134,35 @@ function ProjectDetails({
     return <div>加載中...</div>;
   }
   
+  // 檢查項目數據是否有效
+  console.log("項目詳情:", project);
+  
   return (
     <div className="project-details">
       <button className="btn btn-back" onClick={onBack}>
-        &larr; 返回項目列表
+        <i className="fas fa-arrow-left"></i> 返回項目列表
       </button>
       
       <h2>{project.name}</h2>
       
       <div className="project-info">
         <p className="project-description">{project.description}</p>
+        
+        <div className="project-progress">
+          <div className="progress-info">
+            <span>已籌集: {fromWei(project.totalDonated)} ETH</span>
+            <span>目標: {fromWei(project.fundraisingGoal)} ETH</span>
+          </div>
+          <div className="progress-bar">
+            <div 
+              className={`progress-bar-fill ${calculateProgress() >= 100 ? 'completed' : ''}`}
+              style={{width: `${Math.min(calculateProgress(), 100)}%`}}
+            ></div>
+          </div>
+          <div className="progress-percentage">
+            {formatProgress(calculateProgress())}
+          </div>
+        </div>
         
         <div className="project-stats">
           <div className="stat">
@@ -132,7 +182,7 @@ function ProjectDetails({
         </div>
         
         <div className="project-meta">
-          <p><strong>受益人:</strong> {project.beneficiary}</p>
+          <p><strong>受益人:</strong> <span className="address-text">{project.beneficiary}</span></p>
           <p><strong>創建時間:</strong> {project.createdAt}</p>
         </div>
       </div>
@@ -140,7 +190,7 @@ function ProjectDetails({
       <div className="project-actions">
         {project.isActive && (
           <button className="btn btn-primary" onClick={onDonate}>
-            捐款
+            <i className="fas fa-hand-holding-usd"></i> 捐款
           </button>
         )}
         
@@ -149,7 +199,11 @@ function ProjectDetails({
             className={`btn ${project.isActive ? 'btn-warning' : 'btn-success'}`}
             onClick={() => toggleStatus(project.id)}
           >
-            {project.isActive ? '關閉項目' : '重新開放項目'}
+            {project.isActive ? (
+              <><i className="fas fa-times-circle"></i> 關閉項目</>
+            ) : (
+              <><i className="fas fa-check-circle"></i> 重新開放項目</>
+            )}
           </button>
         )}
       </div>

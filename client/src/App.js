@@ -191,7 +191,7 @@ function App() {
           });
           
           try {
-            await loadProjects(contractInstance);
+            await loadProjects(contractInstance, web3Instance);
             console.log("項目加載成功");
           } catch (loadError) {
             console.error("加載項目失敗:", loadError);
@@ -238,6 +238,40 @@ function App() {
         // 其他錯誤
         alert('連接錢包時出錯: ' + (error.message || '未知錯誤'));
       }
+    }
+  };
+
+  // 切換錢包函數
+  const switchWallet = async () => {
+    try {
+      setLoading(true);
+      console.log("嘗試切換錢包...");
+      
+      if (!window.ethereum) {
+        console.error("未檢測到 MetaMask");
+        alert('請安裝 MetaMask 擴展以使用此應用');
+        setLoading(false);
+        return;
+      }
+      
+      // 請求MetaMask打開錢包選擇界面
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      });
+      
+      // 重新連接錢包以獲取新選擇的賬戶
+      await connectWallet();
+      
+    } catch (error) {
+      console.error("切換錢包錯誤:", error);
+      if (error.code === 4001) {
+        alert('您取消了切換錢包操作');
+      } else {
+        alert('切換錢包時出錯: ' + (error.message || '未知錯誤'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -317,10 +351,17 @@ function App() {
   }, []);
   
   // 加載所有慈善項目
-  const loadProjects = async (contractInstance) => {
+  const loadProjects = async (contractInstance, web3Instance) => {
     try {
       const contract = contractInstance || window.contract;
       if (!contract) return;
+      
+      // 使用傳入的web3實例或全局web3
+      const web3Util = web3Instance || web3;
+      if (!web3Util) {
+        console.error("Web3實例不可用，無法加載項目");
+        return;
+      }
       
       const projectCount = await contract.methods.projectCount().call();
       const projectsArray = [];
@@ -330,14 +371,19 @@ function App() {
 
       for (let i = 0; i < count; i++) {
         const project = await contract.methods.projects(i).call();
+        
+        // 處理金額格式化 - 確保數值正確
+        const fundraisingGoalWei = project.fundraisingGoal.toString();
+        const totalDonatedWei = project.totalDonated.toString();
+        
         projectsArray.push({
           id: i,
           name: project.name,
           description: project.description,
           beneficiary: project.beneficiary,
-          // fundraisingGoal 和 totalDonated 也可能是 BigInt，需要轉換為字符串或數字進行顯示
-          fundraisingGoal: web3.utils.fromWei(project.fundraisingGoal.toString(), 'ether'),
-          totalDonated: web3.utils.fromWei(project.totalDonated.toString(), 'ether'),
+          // 存儲原始wei值，在顯示時再進行格式化
+          fundraisingGoal: fundraisingGoalWei,
+          totalDonated: totalDonatedWei,
           isActive: project.isActive,
           // 將 project.createdAt (BigInt) 轉換為 Number 再進行計算
           createdAt: new Date(Number(project.createdAt) * 1000).toLocaleString()
@@ -364,7 +410,7 @@ function App() {
         web3.utils.toWei(fundraisingGoal.toString(), 'ether')
       ).send({ from: accounts[0], gas: gasLimit });
       
-      await loadProjects();
+      await loadProjects(contract, web3);
       setView('list');
     } catch (error) {
       console.error("創建項目錯誤:", error);
@@ -382,16 +428,85 @@ function App() {
   const donateToProject = async (projectId, amount, message) => {
     try {
       setLoading(true);
-      await contract.methods.donate(projectId, message).send({
-        from: accounts[0],
-        value: web3.utils.toWei(amount.toString(), 'ether')
-      });
+      console.log(`開始捐款，項目ID: ${projectId}，金額: ${amount} ETH，留言: ${message}`);
       
-      await loadProjects();
+      // 確保contract和web3已正確初始化
+      if (!contract || !contract.methods) {
+        console.error("合約實例不可用");
+        alert('合約連接錯誤，請重新連接錢包後再試');
+        setLoading(false);
+        return;
+      }
+      
+      if (!web3 || !web3.utils) {
+        console.error("Web3實例不可用");
+        alert('Web3連接錯誤，請重新連接錢包後再試');
+        setLoading(false);
+        return;
+      }
+      
+      // 確保賬戶已連接
+      if (!accounts || accounts.length === 0) {
+        console.error("未找到已連接的賬戶");
+        alert('請先連接MetaMask錢包');
+        setLoading(false);
+        return;
+      }
+      
+      // 確保金額有效
+      if (isNaN(amount) || amount <= 0) {
+        console.error("無效的捐款金額:", amount);
+        alert('請輸入有效的捐款金額');
+        setLoading(false);
+        return;
+      }
+      
+      // 轉換為wei
+      const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+      console.log(`捐款金額(wei): ${amountInWei}`);
+      
+      // 設置交易參數
+      const gasLimit = 3000000; // 設置足夠高的gas限制
+      const transactionParameters = {
+        from: accounts[0],
+        value: amountInWei,
+        gas: gasLimit
+      };
+      
+      console.log("交易參數:", transactionParameters);
+      console.log("調用合約donate方法...");
+      
+      // 執行捐款交易
+      const result = await contract.methods.donate(projectId, message || "").send(transactionParameters);
+      
+      console.log("捐款交易成功:", result);
+      
+      // 重新加載項目列表
+      await loadProjects(contract, web3);
       setView('details');
+      
+      // 顯示成功消息
+      alert('捐款成功！感謝您的慷慨支持');
     } catch (error) {
       console.error("捐款錯誤:", error);
-      alert('捐款失敗');
+      
+      // 詳細的錯誤處理
+      if (error.code === 4001) {
+        alert('您取消了交易');
+      } else if (error.message && error.message.includes("gas")) {
+        alert('交易失敗：可能是Gas不足。請嘗試增加Gas限制或減少捐款金額');
+      } else if (error.message && error.message.includes("balance")) {
+        alert('交易失敗：餘額不足。請確保您的錢包中有足夠的ETH');
+      } else if (error.message && error.message.includes("reverted")) {
+        alert('交易被回滾：合約執行失敗。項目可能已關閉或不存在');
+      } else {
+        alert('捐款失敗：' + (error.message || '未知錯誤'));
+      }
+      
+      // 如果有交易回執，記錄它
+      if (error.receipt) {
+        console.error("交易回執:", error.receipt);
+      }
     } finally {
       setLoading(false);
     }
@@ -402,7 +517,7 @@ function App() {
     try {
       setLoading(true);
       await contract.methods.toggleProjectStatus(projectId).send({ from: accounts[0] });
-      await loadProjects();
+      await loadProjects(contract, web3);
     } catch (error) {
       console.error("切換項目狀態錯誤:", error);
       alert('切換項目狀態失敗');
@@ -420,7 +535,7 @@ function App() {
         web3.utils.toWei(amount.toString(), 'ether')
       ).send({ from: accounts[0] });
       
-      await loadProjects();
+      await loadProjects(contract, web3);
     } catch (error) {
       console.error("提取資金錯誤:", error);
       alert('提取資金失敗');
@@ -462,14 +577,19 @@ function App() {
           <h2>歡迎使用區塊鏈透明慈善捐贈平台</h2>
           <p>請連接您的 MetaMask 錢包以開始使用</p>
           <button className="btn btn-primary btn-lg" onClick={connectWallet}>
-            連接錢包
+            <i className="fas fa-wallet"></i> 連接錢包
           </button>
         </div>
       );
     }
     
     if (loading) {
-      return <div className="loading">加載中...</div>;
+      return (
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <span>加載中，請稍候...</span>
+        </div>
+      );
     }
     
     switch (view) {
@@ -516,6 +636,7 @@ function App() {
         isOwner={isOwner}
         isWalletConnected={isWalletConnected}
         onConnectWallet={connectWallet}
+        onSwitchWallet={switchWallet}
       />
       <main className="container">
         {renderView()}
