@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -7,12 +7,14 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="區塊鏈透明慈善捐贈平台"
+      content="Web site created using create-react-app"
     />
-    <meta http-equiv="Content-Security-Policy" content="connect-src 'self' http://localhost:8545 http://127.0.0.1:8545 ws://localhost:8545 ws://127.0.0.1:8545 https://*.infura.io https://*.alchemyapi.io https://*.metamask.io data:">
+    <!-- 添加 Content-Security-Policy meta 標籤，允許從 CryptoCompare API 獲取數據 -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' http://localhost:8545 http://127.0.0.1:8545 ws://localhost:8545 ws://127.0.0.1:8545 https://*.infura.io https://*.alchemyapi.io https://*.metamask.io https://min-api.cryptocompare.com https://api.coingecko.com data:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com;"
+    />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!-- Font Awesome 圖標庫 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -27,10 +29,11 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>區塊鏈透明慈善捐贈平台</title>
+    <title>Amplifier - 區塊鏈慈善捐贈平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   </head>
   <body>
-    <noscript>您需要啟用 JavaScript 才能運行此應用。</noscript>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.

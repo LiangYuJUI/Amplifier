@@ -9,6 +9,8 @@ import ProjectList from './components/ProjectList';
 import ProjectForm from './components/ProjectForm';
 import DonationForm from './components/DonationForm';
 import ProjectDetails from './components/ProjectDetails';
+import AdminPanel from './components/AdminPanel';
+import ExchangeRateDisplay from './components/ExchangeRateDisplay';
 
 function App() {
   // 狀態變量
@@ -19,7 +21,7 @@ function App() {
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [view, setView] = useState('list'); // 'list', 'create', 'details', 'donate'
+  const [view, setView] = useState('list'); // 'list', 'create', 'details', 'donate', 'admin'
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   // 連接錢包函數
@@ -616,6 +618,26 @@ function App() {
             onBack={() => setView('list')}
           />
         );
+      case 'admin':
+        if (!isOwner) {
+          setView('list');
+          return (
+            <ProjectList
+              projects={projects}
+              onProjectClick={showProjectDetails}
+              isOwner={isOwner}
+              onCreateClick={() => setView('create')}
+            />
+          );
+        }
+        return (
+          <AdminPanel
+            projects={projects}
+            toggleStatus={toggleProjectStatus}
+            onCreateClick={() => setView('create')}
+            onViewDetails={showProjectDetails}
+          />
+        );
       case 'list':
       default:
         return (
@@ -637,8 +659,10 @@ function App() {
         isWalletConnected={isWalletConnected}
         onConnectWallet={connectWallet}
         onSwitchWallet={switchWallet}
+        onAdminClick={() => setView('admin')}
       />
       <main className="container">
+        {isWalletConnected && <ExchangeRateDisplay />}
         {renderView()}
       </main>
     </div>

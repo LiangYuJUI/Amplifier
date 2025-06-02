@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
+import { ethToUsd, formatUsd, formatEth } from '../utils/priceUtils';
 
 function DonationForm({ project, onDonate, onCancel }) {
   const [amount, setAmount] = useState('');
@@ -7,16 +8,23 @@ function DonationForm({ project, onDonate, onCancel }) {
   const [maxAmount, setMaxAmount] = useState('0');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [usdAmount, setUsdAmount] = useState(null);
+  const [usdValues, setUsdValues] = useState({
+    goal: null,
+    raised: null
+  });
+  const [loadingUsd, setLoadingUsd] = useState(false);
   
   // 使用Web3.utils而不是依賴window.web3
   const fromWei = (value) => {
     return Web3.utils.fromWei(value.toString(), 'ether');
   };
   
-  // 初始化時獲取用戶錢包餘額
+  // 初始化時獲取用戶錢包餘額和USD匯率
   useEffect(() => {
-    const checkBalance = async () => {
+    const init = async () => {
       try {
+        // 檢查錢包餘額
         if (window.ethereum && window.ethereum.selectedAddress) {
           const web3Instance = new Web3(window.ethereum);
           const balance = await web3Instance.eth.getBalance(window.ethereum.selectedAddress);
@@ -24,13 +32,63 @@ function DonationForm({ project, onDonate, onCancel }) {
           const maxDonation = parseFloat(fromWei(balance)) * 0.95;
           setMaxAmount(maxDonation.toFixed(4));
         }
+        
+        // 獲取項目的USD價值
+        setLoadingUsd(true);
+        const ethGoal = fromWei(project.fundraisingGoal);
+        const ethRaised = fromWei(project.totalDonated);
+        
+        try {
+          const usdGoal = await ethToUsd(ethGoal);
+          const usdRaised = await ethToUsd(ethRaised);
+          
+          setUsdValues({
+            goal: usdGoal,
+            raised: usdRaised
+          });
+        } catch (error) {
+          console.error("USD轉換錯誤:", error);
+          // 使用預設值
+          const defaultRate = 3000;
+          setUsdValues({
+            goal: parseFloat(ethGoal) * defaultRate,
+            raised: parseFloat(ethRaised) * defaultRate
+          });
+        } finally {
+          setLoadingUsd(false);
+        }
       } catch (error) {
-        console.error("獲取餘額錯誤:", error);
+        console.error("初始化錯誤:", error);
+        setLoadingUsd(false);
       }
     };
     
-    checkBalance();
-  }, []);
+    init();
+  }, [project]);
+  
+  // 當捐款金額變化時，計算USD等值
+  useEffect(() => {
+    const updateUsdAmount = async () => {
+      if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+        try {
+          setLoadingUsd(true);
+          const usd = await ethToUsd(parseFloat(amount));
+          setUsdAmount(usd);
+        } catch (error) {
+          console.error("計算USD金額錯誤:", error);
+          // 使用預設值
+          const defaultRate = 3000;
+          setUsdAmount(parseFloat(amount) * defaultRate);
+        } finally {
+          setLoadingUsd(false);
+        }
+      } else {
+        setUsdAmount(null);
+      }
+    };
+    
+    updateUsdAmount();
+  }, [amount]);
   
   // 計算進度百分比
   const calculateProgress = () => {
@@ -98,8 +156,26 @@ function DonationForm({ project, onDonate, onCancel }) {
         <p><strong>項目描述:</strong> {project.description}</p>
         <div className="project-progress">
           <div className="progress-info">
-            <span>已籌集: {fromWei(project.totalDonated)} ETH</span>
-            <span>目標: {fromWei(project.fundraisingGoal)} ETH</span>
+            <span>
+              已籌集: {fromWei(project.totalDonated)} ETH
+              <span className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  `(${usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'})`
+                )}
+              </span>
+            </span>
+            <span>
+              目標: {fromWei(project.fundraisingGoal)} ETH
+              <span className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  `(${usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'})`
+                )}
+              </span>
+            </span>
           </div>
           <div className="progress-bar">
             <div 
@@ -139,6 +215,15 @@ function DonationForm({ project, onDonate, onCancel }) {
               </button>
             </div>
           </div>
+          {usdAmount && (
+            <div className="usd-amount">
+              估計金額: {loadingUsd ? (
+                <span className="loading-inline">計算中...</span>
+              ) : (
+                formatUsd(usdAmount)
+              )}
+            </div>
+          )}
           {error && <div className="form-error">{error}</div>}
           <div className="balance-info">
             您的可用餘額: {maxAmount} ETH

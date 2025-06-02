@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
+import { ethToUsd, formatUsd, formatEth } from '../utils/priceUtils';
 
 function ProjectDetails({
   project,
@@ -20,6 +21,12 @@ function ProjectDetails({
     recipient: ''
   });
   const [loading, setLoading] = useState(false);
+  const [usdValues, setUsdValues] = useState({
+    goal: null,
+    raised: null
+  });
+  const [loadingUsd, setLoadingUsd] = useState(false);
+  const [usdError, setUsdError] = useState(false);
   
   // 使用Web3.utils而不是依賴window.web3，並格式化ETH金額顯示
   const fromWei = (value) => {
@@ -56,6 +63,57 @@ function ProjectDetails({
       return `${Math.floor(percentage)}%`;
     }
   };
+  
+  // 加載ETH到USD匯率
+  useEffect(() => {
+    const loadUsdValues = async () => {
+      if (!project) return;
+      
+      try {
+        setLoadingUsd(true);
+        setUsdError(false);
+        console.log("正在加載項目USD價值...");
+        console.log("項目籌款目標:", project.fundraisingGoal);
+        console.log("已籌集金額:", project.totalDonated);
+        
+        const ethGoal = fromWei(project.fundraisingGoal);
+        const ethRaised = fromWei(project.totalDonated);
+        
+        console.log("轉換後的ETH目標:", ethGoal);
+        console.log("轉換後的ETH籌集:", ethRaised);
+        
+        try {
+          const usdGoal = await ethToUsd(ethGoal);
+          const usdRaised = await ethToUsd(ethRaised);
+          
+          console.log("USD目標:", usdGoal);
+          console.log("USD籌集:", usdRaised);
+          
+          setUsdValues({
+            goal: usdGoal,
+            raised: usdRaised
+          });
+        } catch (conversionError) {
+          console.error("ETH到USD轉換錯誤:", conversionError);
+          setUsdError(true);
+          
+          // 使用預設匯率作為備用
+          const defaultRate = 3000;
+          setUsdValues({
+            goal: parseFloat(ethGoal) * defaultRate,
+            raised: parseFloat(ethRaised) * defaultRate
+          });
+        }
+      } catch (error) {
+        console.error("加載USD價格錯誤:", error);
+        setUsdError(true);
+      } finally {
+        setLoadingUsd(false);
+      }
+    };
+    
+    loadUsdValues();
+  }, [project]);
   
   // 加載捐款和支出記錄
   useEffect(() => {
@@ -130,6 +188,49 @@ function ProjectDetails({
     }));
   };
   
+  // 刷新USD匯率
+  const refreshUsdRate = () => {
+    // 直接調用 loadUsdValues 函數的邏輯，而不是嘗試調用未定義的函數
+    if (!project) return;
+    
+    const loadRates = async () => {
+      try {
+        setLoadingUsd(true);
+        setUsdError(false);
+        
+        const ethGoal = fromWei(project.fundraisingGoal);
+        const ethRaised = fromWei(project.totalDonated);
+        
+        try {
+          const usdGoal = await ethToUsd(ethGoal);
+          const usdRaised = await ethToUsd(ethRaised);
+          
+          setUsdValues({
+            goal: usdGoal,
+            raised: usdRaised
+          });
+        } catch (conversionError) {
+          console.error("刷新ETH到USD轉換錯誤:", conversionError);
+          setUsdError(true);
+          
+          // 使用預設匯率作為備用
+          const defaultRate = 3000;
+          setUsdValues({
+            goal: parseFloat(ethGoal) * defaultRate,
+            raised: parseFloat(ethRaised) * defaultRate
+          });
+        }
+      } catch (error) {
+        console.error("刷新USD價格錯誤:", error);
+        setUsdError(true);
+      } finally {
+        setLoadingUsd(false);
+      }
+    };
+    
+    loadRates();
+  };
+  
   if (!project) {
     return <div>加載中...</div>;
   }
@@ -150,8 +251,32 @@ function ProjectDetails({
         
         <div className="project-progress">
           <div className="progress-info">
-            <span>已籌集: {fromWei(project.totalDonated)} ETH</span>
-            <span>目標: {fromWei(project.fundraisingGoal)} ETH</span>
+            <span>
+              已籌集: {fromWei(project.totalDonated)} ETH
+              <span className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  <>
+                    ({usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'})
+                    {usdError && <span className="error-badge">估計</span>}
+                  </>
+                )}
+              </span>
+            </span>
+            <span>
+              目標: {fromWei(project.fundraisingGoal)} ETH
+              <span className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  <>
+                    ({usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'})
+                    {usdError && <span className="error-badge">估計</span>}
+                  </>
+                )}
+              </span>
+            </span>
           </div>
           <div className="progress-bar">
             <div 
@@ -167,11 +292,35 @@ function ProjectDetails({
         <div className="project-stats">
           <div className="stat">
             <span className="stat-label">目標金額</span>
-            <span className="stat-value">{fromWei(project.fundraisingGoal)} ETH</span>
+            <span className="stat-value">
+              {fromWei(project.fundraisingGoal)} ETH
+              <div className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  <>
+                    {usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'}
+                    {usdError && <span className="error-badge">估計</span>}
+                  </>
+                )}
+              </div>
+            </span>
           </div>
           <div className="stat">
             <span className="stat-label">已籌集</span>
-            <span className="stat-value">{fromWei(project.totalDonated)} ETH</span>
+            <span className="stat-value">
+              {fromWei(project.totalDonated)} ETH
+              <div className="usd-value">
+                {loadingUsd ? (
+                  <span className="loading-inline">計算中...</span>
+                ) : (
+                  <>
+                    {usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'}
+                    {usdError && <span className="error-badge">估計</span>}
+                  </>
+                )}
+              </div>
+            </span>
           </div>
           <div className="stat">
             <span className="stat-label">狀態</span>
