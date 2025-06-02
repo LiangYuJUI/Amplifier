@@ -325,17 +325,22 @@ function App() {
       const projectCount = await contract.methods.projectCount().call();
       const projectsArray = [];
       
-      for (let i = 0; i < projectCount; i++) {
+      // projectCount 也是 BigInt，需要轉換
+      const count = Number(projectCount); 
+
+      for (let i = 0; i < count; i++) {
         const project = await contract.methods.projects(i).call();
         projectsArray.push({
           id: i,
           name: project.name,
           description: project.description,
           beneficiary: project.beneficiary,
-          fundraisingGoal: project.fundraisingGoal,
-          totalDonated: project.totalDonated,
+          // fundraisingGoal 和 totalDonated 也可能是 BigInt，需要轉換為字符串或數字進行顯示
+          fundraisingGoal: web3.utils.fromWei(project.fundraisingGoal.toString(), 'ether'),
+          totalDonated: web3.utils.fromWei(project.totalDonated.toString(), 'ether'),
           isActive: project.isActive,
-          createdAt: new Date(project.createdAt * 1000).toLocaleString()
+          // 將 project.createdAt (BigInt) 轉換為 Number 再進行計算
+          createdAt: new Date(Number(project.createdAt) * 1000).toLocaleString()
         });
       }
       
@@ -349,18 +354,25 @@ function App() {
   const createProject = async (name, description, beneficiary, fundraisingGoal) => {
     try {
       setLoading(true);
+      // 嘗試增加 gas limit
+      const gasLimit = 3000000; // 可以根據需要調整這個值
+      console.log(`Attempting to create project with gas limit: ${gasLimit}`);
       await contract.methods.createProject(
         name,
         description,
         beneficiary,
         web3.utils.toWei(fundraisingGoal.toString(), 'ether')
-      ).send({ from: accounts[0] });
+      ).send({ from: accounts[0], gas: gasLimit });
       
       await loadProjects();
       setView('list');
     } catch (error) {
       console.error("創建項目錯誤:", error);
-      alert('創建項目失敗');
+      // 更詳細的錯誤輸出
+      if (error.receipt) {
+        console.error("交易回執:", error.receipt);
+      }
+      alert('創建項目失敗，請檢查瀏覽器控制台和Ganache日誌獲取更多信息。');
     } finally {
       setLoading(false);
     }
