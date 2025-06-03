@@ -8,6 +8,7 @@ function ExchangeRateDisplay() {
   const [isSimulated, setIsSimulated] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [nextUpdateIn, setNextUpdateIn] = useState(10);
+  const [refreshing, setRefreshing] = useState(false);
   
   // 獲取匯率
   const fetchRate = async (showLoading = true, forceRefresh = false) => {
@@ -39,7 +40,15 @@ function ExchangeRateDisplay() {
       setIsSimulated(true);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+  
+  // 手動刷新匯率
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    fetchRate(false, true);
   };
   
   // 初始加載和定時刷新
@@ -106,6 +115,14 @@ function ExchangeRateDisplay() {
             {error ? '無法獲取即時匯率' : formatLastUpdated()}
             <span className="next-update"> ({nextUpdateIn}秒後更新)</span>
           </span>
+          <button 
+            className={`refresh-btn ${refreshing ? 'refreshing' : ''}`}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="立即刷新匯率"
+          >
+            <i className="fas fa-sync-alt"></i>
+          </button>
         </div>
       </div>
     </div>

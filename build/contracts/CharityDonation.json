@@ -19268,8 +19268,8 @@
     "1337": {
       "events": {},
       "links": {},
-      "address": "0xde5139cb8706C35f12b6255CB3958d4A3522b02f",
-      "transactionHash": "0x87cb3f47410bfc23f8b63408743bcf1bea623df249ee0c7ecc6a8d6739b019ce"
+      "address": "0xD1371F026b1C3A0C786Bf650A576eB44dC600709",
+      "transactionHash": "0xcf203abd73ebcf06846f7583fd133e75dfa3998c68d1d31be2618a7d0709c056"
     },
     "1748802756764": {
       "events": {},
@@ -19297,7 +19297,7 @@
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-06-02T06:57:23.533Z",
+  "updatedAt": "2025-06-02T11:21:02.369Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "一個透明的慈善捐贈平台智能合約",

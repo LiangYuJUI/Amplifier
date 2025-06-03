@@ -833,33 +833,32 @@ body::before {
 
 .wallet-actions {
   display: flex;
-  gap: 5px;
+  gap: 10px;
 }
 
-.btn-switch, .btn-reconnect, .btn-admin {
+.btn-wallet-action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   background-color: transparent;
   border: 1px solid var(--primary-color);
   color: var(--primary-color);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: var(--transition);
 }
 
-.btn-switch:hover, .btn-reconnect:hover {
+.btn-wallet-action:hover {
   background-color: var(--primary-color);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 3px 8px rgba(52, 152, 219, 0.2);
 }
 
-.btn-reconnect:hover {
-  transform: rotate(180deg);
+.btn-wallet-action i {
+  font-size: 0.9rem;
 }
 
 .btn-admin {
@@ -870,12 +869,6 @@ body::before {
 .btn-admin:hover {
   background-color: var(--danger-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(231, 76, 60, 0.2);
-}
-
-.btn-reconnect i, .btn-switch i {
-  font-size: 14px;
 }
 
 /* 進度條樣式 */
@@ -1375,4 +1368,423 @@ body::before {
   border-radius: 10px;
   margin-left: 8px;
   vertical-align: middle;
+}
+
+/* 捐款統計按鈕容器 */
+.stats-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.btn-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+}
+
+/* 捐款統計頁面樣式 */
+.donation-stats {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 25px;
+  margin-top: 20px;
+}
+
+/* 標籤頁樣式 */
+.stats-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--light-text);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  color: var(--primary-color);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 3px 3px 0 0;
+}
+
+/* 捐款歷史記錄樣式 */
+.donation-history h2,
+.donation-ranking h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: var(--dark-text);
+}
+
+.donation-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.donation-card {
+  background-color: var(--light-bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  transition: var(--transition);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.donation-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.donation-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.donation-project {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.donation-time {
+  color: var(--light-text);
+}
+
+.donation-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donation-amount {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--dark-text);
+}
+
+.donation-donor {
+  font-size: 0.9rem;
+  color: var(--medium-text);
+}
+
+.donation-message {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  font-style: italic;
+  color: var(--medium-text);
+  margin-top: 5px;
+}
+
+.donation-message i {
+  margin-right: 5px;
+  color: var(--light-text);
+  font-size: 0.8rem;
+}
+
+.no-donations,
+.no-donors {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--light-text);
+  font-size: 1.1rem;
+}
+
+/* 捐款排行榜樣式 */
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ranking-table-container {
+  overflow-x: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranking-table th,
+.ranking-table td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.ranking-table th {
+  background-color: var(--light-bg);
+  color: var(--dark-text);
+  font-weight: 600;
+}
+
+.ranking-table tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition);
+}
+
+.ranking-table tr:hover {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+.ranking-table .top-1 {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.ranking-table .top-2 {
+  background-color: rgba(192, 192, 192, 0.1);
+}
+
+.ranking-table .top-3 {
+  background-color: rgba(205, 127, 50, 0.1);
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.rank-1 {
+  background-color: #FFD700;
+  color: #333;
+}
+
+.rank-2 {
+  background-color: #C0C0C0;
+  color: #333;
+}
+
+.rank-3 {
+  background-color: #CD7F32;
+  color: white;
+}
+
+.donor-address {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.donor-address i {
+  color: var(--primary-color);
+}
+
+.eth-amount {
+  font-weight: 600;
+}
+
+.donation-count {
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .stats-tabs {
+    flex-direction: column;
+    border-bottom: none;
+  }
+  
+  .tab-btn {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .tab-btn.active::after {
+    display: none;
+  }
+  
+  .tab-btn.active {
+    background-color: var(--light-bg);
+  }
+  
+  .ranking-table th,
+  .ranking-table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+}
+
+/* 移除舊的按鈕樣式 */
+.btn-switch, .btn-reconnect {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 提取資金並記錄支出按鈕 */
+.combined-action-section {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: rgba(52, 152, 219, 0.05);
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary-color);
+}
+
+.combined-action-section h4 {
+  color: var(--primary-color);
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.combined-action-section p {
+  margin-bottom: 15px;
+  color: var(--medium-text);
+  font-size: 0.9rem;
+}
+
+.btn-combined-action {
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 12px 20px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+}
+
+.btn-combined-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-combined-action:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-combined-action i {
+  font-size: 1.1rem;
+}
+
+/* 可提取資金餘額顯示樣式 */
+.available-balance-info {
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--secondary-color);
+  padding: 20px;
+  margin-bottom: 25px;
+  border-radius: var(--border-radius);
+}
+
+.available-balance-info h4 {
+  margin-bottom: 15px;
+  color: var(--dark-text);
+  font-size: 1.2rem;
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.balance-amount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.balance-usd {
+  font-size: 1rem;
+  color: var(--light-text);
+}
+
+.btn-refresh-balance {
+  background: none;
+  border: none;
+  color: var(--light-text);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: var(--transition);
+  margin-left: auto;
+}
+
+.btn-refresh-balance:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--primary-color);
+}
+
+.input-with-max {
+  position: relative;
+  display: flex;
+}
+
+.input-with-max input {
+  width: 100%;
+  padding-right: 60px;
+}
+
+.btn-max {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--light-bg);
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-max:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .balance-display {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .btn-refresh-balance {
+    margin-left: 0;
+    margin-top: 10px;
+  }
 }

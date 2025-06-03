@@ -37,26 +37,19 @@ function Header({ account, isOwner, isWalletConnected, onConnectWallet, onSwitch
               </div>
               <div className="wallet-actions">
                 <button 
-                  className="btn-switch" 
+                  className="btn btn-primary btn-sm"
                   onClick={onSwitchWallet}
                   title="切換錢包"
                 >
-                  <i className="fas fa-exchange-alt"></i>
-                </button>
-                <button 
-                  className="btn-reconnect" 
-                  onClick={onConnectWallet}
-                  title="重新連接"
-                >
-                  <i className="fas fa-sync-alt"></i>
+                  <i className="fas fa-exchange-alt"></i> 切換錢包
                 </button>
                 {isOwner && (
                   <button 
-                    className="btn-admin" 
+                    className="btn btn-danger btn-sm"
                     onClick={onAdminClick}
                     title="管理員面板"
                   >
-                    <i className="fas fa-cog"></i>
+                    <i className="fas fa-cog"></i> 管理
                   </button>
                 )}
               </div>

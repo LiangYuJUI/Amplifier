@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Web3 from 'web3';
 
-function AdminPanel({ projects, toggleStatus, onCreateClick, onViewDetails }) {
+function AdminPanel({ projects, toggleStatus, onCreateClick, onViewDetails, onBack }) {
   const [filter, setFilter] = useState('all'); // 'all', 'active', 'inactive'
   
   // 使用Web3.utils而不是依賴window.web3
@@ -26,6 +26,10 @@ function AdminPanel({ projects, toggleStatus, onCreateClick, onViewDetails }) {
 
   return (
     <div className="admin-panel">
+      <button className="btn btn-back" onClick={onBack}>
+        <i className="fas fa-arrow-left"></i> 返回項目列表
+      </button>
+      
       <div className="admin-header">
         <h2>管理員控制面板</h2>
         <button className="btn btn-primary" onClick={onCreateClick}>

@@ -205,7 +205,13 @@ function ProjectList({ projects, onProjectClick, isOwner, onCreateClick }) {
                     {`${project.beneficiary.substring(0, 6)}...${project.beneficiary.substring(project.beneficiary.length - 4)}`}
                   </span>
                 </span>
-                <button className="btn btn-sm btn-primary">
+                <button 
+                  className="btn btn-sm btn-primary"
+                  onClick={(e) => {
+                    e.stopPropagation(); // 防止事件冒泡
+                    onProjectClick(project);
+                  }}
+                >
                   查看詳情 <i className="fas fa-arrow-right"></i>
                 </button>
               </div>

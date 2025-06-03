@@ -11,6 +11,7 @@ import DonationForm from './components/DonationForm';
 import ProjectDetails from './components/ProjectDetails';
 import AdminPanel from './components/AdminPanel';
 import ExchangeRateDisplay from './components/ExchangeRateDisplay';
+import DonationStats from './components/DonationStats';
 
 function App() {
   // 狀態變量
@@ -21,7 +22,7 @@ function App() {
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [view, setView] = useState('list'); // 'list', 'create', 'details', 'donate', 'admin'
+  const [view, setView] = useState('list'); // 'list', 'create', 'details', 'donate', 'admin', 'stats'
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   // 連接錢包函數
@@ -141,6 +142,10 @@ function App() {
               contractAddress
             );
             
+            // 將合約地址和ABI保存到localStorage中，以便其他組件使用
+            localStorage.setItem('contractAddress', contractAddress);
+            localStorage.setItem('contractABI', JSON.stringify(CharityDonationContract.abi));
+            
             console.log("成功創建合約實例");
           } catch (contractError) {
             console.error("創建合約實例失敗:", contractError);
@@ -256,25 +261,62 @@ function App() {
         return;
       }
       
-      // 請求MetaMask打開錢包選擇界面
-      await window.ethereum.request({
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
-      });
-      
-      // 重新連接錢包以獲取新選擇的賬戶
-      await connectWallet();
-      
+      try {
+        // 直接請求MetaMask顯示賬戶選擇界面
+        await window.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }]
+        });
+        
+        console.log("賬戶選擇界面已顯示");
+        
+        // 獲取新選擇的賬戶
+        const newAccounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        console.log("獲取到新賬戶:", newAccounts);
+        
+        if (newAccounts && newAccounts.length > 0) {
+          // 更新賬戶信息
+          setAccounts(newAccounts);
+          
+          // 檢查是否是合約擁有者
+          if (contract && contract.methods) {
+            try {
+              const owner = await contract.methods.owner().call();
+              const isCurrentUserOwner = newAccounts[0].toLowerCase() === owner.toLowerCase();
+              setIsOwner(isCurrentUserOwner);
+            } catch (ownerError) {
+              console.error("檢查擁有者錯誤:", ownerError);
+            }
+          }
+          
+          alert('錢包切換成功！新地址: ' + formatAddress(newAccounts[0]));
+        } else {
+          console.error("未獲取到新賬戶");
+          alert('未能獲取新賬戶，請重試');
+        }
+      } catch (error) {
+        console.error("切換錢包錯誤:", error);
+        if (error.code === 4001) {
+          alert('您取消了切換錢包操作');
+        } else {
+          alert('切換錢包時出錯: ' + (error.message || '未知錯誤'));
+        }
+      }
     } catch (error) {
       console.error("切換錢包錯誤:", error);
-      if (error.code === 4001) {
-        alert('您取消了切換錢包操作');
-      } else {
-        alert('切換錢包時出錯: ' + (error.message || '未知錯誤'));
-      }
+      alert('切換錢包時出錯: ' + (error.message || '未知錯誤'));
     } finally {
       setLoading(false);
     }
+  };
+
+  // 格式化地址顯示
+  const formatAddress = (address) => {
+    if (!address) return '';
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   // 初始化Web3和智能合約
@@ -550,15 +592,59 @@ function App() {
   const recordExpense = async (projectId, description, amount, recipient) => {
     try {
       setLoading(true);
+      console.log("開始記錄支出...");
+      console.log("項目ID:", projectId);
+      console.log("描述:", description);
+      console.log("金額:", amount, "ETH");
+      console.log("接收者:", recipient);
+      
+      // 轉換為wei
+      const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+      console.log("金額(wei):", amountInWei);
+      
+      // 設置交易參數
+      const gasLimit = 3000000; // 設置足夠高的gas限制
+      const transactionParameters = {
+        from: accounts[0],
+        gas: gasLimit
+      };
+      
+      console.log("交易參數:", transactionParameters);
+      console.log("調用合約recordExpense方法...");
+      
+      // 執行記錄支出交易
       await contract.methods.recordExpense(
         projectId,
         description,
-        web3.utils.toWei(amount.toString(), 'ether'),
+        amountInWei,
         recipient
-      ).send({ from: accounts[0] });
+      ).send(transactionParameters);
+      
+      console.log("支出記錄成功!");
+      
+      // 重新加載項目數據
+      await loadProjects(contract, web3);
+      
+      // 顯示成功消息
+      alert('支出記錄成功！');
     } catch (error) {
       console.error("記錄支出錯誤:", error);
-      alert('記錄支出失敗');
+      
+      // 詳細的錯誤處理
+      if (error.code === 4001) {
+        alert('您取消了交易');
+      } else if (error.message && error.message.includes("gas")) {
+        alert('交易失敗：可能是Gas不足。請嘗試增加Gas限制');
+      } else if (error.message && error.message.includes("revert")) {
+        alert('交易被回滾：合約執行失敗。您可能不是項目受益人或項目不存在');
+      } else {
+        alert('記錄支出失敗：' + (error.message || '未知錯誤'));
+      }
+      
+      // 如果有交易回執，記錄它
+      if (error.receipt) {
+        console.error("交易回執:", error.receipt);
+      }
     } finally {
       setLoading(false);
     }
@@ -572,14 +658,25 @@ function App() {
   
   // 渲染不同視圖
   const renderView = () => {
-    // 如果錢包未連接，顯示連接錢包按鈕
     if (!isWalletConnected) {
       return (
         <div className="wallet-connect-container">
           <h2>歡迎使用區塊鏈透明慈善捐贈平台</h2>
-          <p>請連接您的 MetaMask 錢包以開始使用</p>
-          <button className="btn btn-primary btn-lg" onClick={connectWallet}>
-            <i className="fas fa-wallet"></i> 連接錢包
+          <p>請連接您的MetaMask錢包以使用此應用</p>
+          <button 
+            className="btn btn-connect btn-lg"
+            onClick={connectWallet}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="btn-spinner"></span> 連接中...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-wallet"></i> 連接錢包
+              </>
+            )}
           </button>
         </div>
       );
@@ -596,57 +693,85 @@ function App() {
     
     switch (view) {
       case 'create':
-        return <ProjectForm createProject={createProject} onCancel={() => setView('list')} />;
-      case 'donate':
         return (
-          <DonationForm
-            project={selectedProject}
-            onDonate={donateToProject}
-            onCancel={() => setView('details')}
+          <ProjectForm 
+            createProject={createProject} 
+            onCancel={() => setView('list')} 
           />
         );
       case 'details':
         return (
-          <ProjectDetails
+          <ProjectDetails 
             project={selectedProject}
             isOwner={isOwner}
             isBeneficiary={selectedProject && accounts[0].toLowerCase() === selectedProject.beneficiary.toLowerCase()}
             toggleStatus={toggleProjectStatus}
             withdrawFunds={withdrawFunds}
             recordExpense={recordExpense}
-            onDonate={() => setView('donate')}
-            onBack={() => setView('list')}
+            onDonate={() => {
+              setView('donate');
+            }}
+            onBack={() => {
+              setView('list');
+              setSelectedProject(null);
+            }}
+          />
+        );
+      case 'donate':
+        return (
+          <DonationForm 
+            project={selectedProject}
+            account={accounts[0]}
+            onDonate={donateToProject}
+            onCancel={() => setView('details')}
           />
         );
       case 'admin':
-        if (!isOwner) {
-          setView('list');
-          return (
-            <ProjectList
+        return (
+          <AdminPanel 
+            projects={projects}
+            toggleStatus={toggleProjectStatus}
+            onBack={() => setView('list')}
+            onViewDetails={(project) => {
+              setSelectedProject(project);
+              setView('details');
+            }}
+            onCreateClick={() => setView('create')}
+          />
+        );
+      case 'stats':
+        return (
+          <>
+            <button className="btn btn-back" onClick={() => setView('list')}>
+              <i className="fas fa-arrow-left"></i> 返回項目列表
+            </button>
+            <DonationStats 
+              contract={contract}
+              web3={web3}
+              projects={projects}
+            />
+          </>
+        );
+      case 'list':
+      default:
+        return (
+          <>
+            <ExchangeRateDisplay />
+            <ProjectList 
               projects={projects}
               onProjectClick={showProjectDetails}
               isOwner={isOwner}
               onCreateClick={() => setView('create')}
             />
-          );
-        }
-        return (
-          <AdminPanel
-            projects={projects}
-            toggleStatus={toggleProjectStatus}
-            onCreateClick={() => setView('create')}
-            onViewDetails={showProjectDetails}
-          />
-        );
-      case 'list':
-      default:
-        return (
-          <ProjectList
-            projects={projects}
-            onProjectClick={showProjectDetails}
-            isOwner={isOwner}
-            onCreateClick={() => setView('create')}
-          />
+            <div className="stats-button-container">
+              <button 
+                className="btn btn-primary btn-stats" 
+                onClick={() => setView('stats')}
+              >
+                <i className="fas fa-chart-bar"></i> 查看捐款統計
+              </button>
+            </div>
+          </>
         );
     }
   };
@@ -662,7 +787,6 @@ function App() {
         onAdminClick={() => setView('admin')}
       />
       <main className="container">
-        {isWalletConnected && <ExchangeRateDisplay />}
         {renderView()}
       </main>
     </div>
