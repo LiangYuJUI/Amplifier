@@ -408,32 +408,52 @@ function App() {
       }
       
       const projectCount = await contract.methods.projectCount().call();
+      console.log("項目總數:", projectCount);
       const projectsArray = [];
       
-      // projectCount 也是 BigInt，需要轉換
-      const count = Number(projectCount); 
+      // 使用Number轉換projectCount，確保它是數字
+      const count = Number(projectCount);
+      console.log("轉換後的項目數:", count);
 
       for (let i = 0; i < count; i++) {
-        const project = await contract.methods.projects(i).call();
-        
-        // 處理金額格式化 - 確保數值正確
-        const fundraisingGoalWei = project.fundraisingGoal.toString();
-        const totalDonatedWei = project.totalDonated.toString();
-        
-        projectsArray.push({
-          id: i,
-          name: project.name,
-          description: project.description,
-          beneficiary: project.beneficiary,
-          // 存儲原始wei值，在顯示時再進行格式化
-          fundraisingGoal: fundraisingGoalWei,
-          totalDonated: totalDonatedWei,
-          isActive: project.isActive,
-          // 將 project.createdAt (BigInt) 轉換為 Number 再進行計算
-          createdAt: new Date(Number(project.createdAt) * 1000).toLocaleString()
-        });
+        try {
+          console.log(`加載項目 ${i} 的詳情...`);
+          const project = await contract.methods.projects(i).call();
+          console.log(`項目 ${i} 詳情:`, project);
+          
+          // 處理金額格式化 - 確保數值正確
+          const fundraisingGoalWei = project.fundraisingGoal.toString();
+          const totalDonatedWei = project.totalDonated.toString();
+          
+          // 獲取項目可用餘額
+          let availableBalance = '0';
+          try {
+            const balanceWei = await contract.methods.getAvailableBalance(i.toString()).call();
+            availableBalance = balanceWei.toString();
+            console.log(`項目 ${i} 可用餘額(wei):`, availableBalance);
+          } catch (balanceError) {
+            console.error(`獲取項目 ${i} 餘額錯誤:`, balanceError);
+          }
+          
+          projectsArray.push({
+            id: i,
+            name: project.name,
+            description: project.description,
+            beneficiary: project.beneficiary,
+            // 存儲原始wei值，在顯示時再進行格式化
+            fundraisingGoal: fundraisingGoalWei,
+            totalDonated: totalDonatedWei,
+            availableBalance: availableBalance,
+            isActive: project.isActive,
+            // 將 project.createdAt (BigInt) 轉換為 Number 再進行計算
+            createdAt: new Date(Number(project.createdAt) * 1000).toLocaleString()
+          });
+        } catch (projectError) {
+          console.error(`加載項目 ${i} 時發生錯誤:`, projectError);
+        }
       }
       
+      console.log("成功加載項目:", projectsArray.length);
       setProjects(projectsArray);
     } catch (error) {
       console.error("加載項目錯誤:", error);
@@ -574,15 +594,54 @@ function App() {
   const withdrawFunds = async (projectId, amount) => {
     try {
       setLoading(true);
-      await contract.methods.withdrawFunds(
-        projectId,
-        web3.utils.toWei(amount.toString(), 'ether')
-      ).send({ from: accounts[0] });
+      console.log("開始提取資金...");
+      console.log("項目ID:", projectId);
+      console.log("提取金額:", amount, "ETH");
       
+      // 轉換為wei
+      const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+      console.log("提取金額(wei):", amountInWei);
+      
+      // 設置交易參數
+      const gasLimit = 3000000; // 設置足夠高的gas限制
+      const transactionParameters = {
+        from: accounts[0],
+        gas: gasLimit
+      };
+      
+      console.log("交易參數:", transactionParameters);
+      console.log("調用合約withdrawFunds方法...");
+      
+      // 執行提取資金交易，確保使用字符串處理項目ID
+      await contract.methods.withdrawFunds(
+        projectId.toString(),
+        amountInWei
+      ).send(transactionParameters);
+      
+      console.log("提取資金成功!");
+      
+      // 重新加載項目列表
       await loadProjects(contract, web3);
     } catch (error) {
       console.error("提取資金錯誤:", error);
-      alert('提取資金失敗');
+      
+      // 詳細的錯誤處理
+      if (error.code === 4001) {
+        alert('您取消了交易');
+      } else if (error.message && error.message.includes("gas")) {
+        alert('交易失敗：可能是Gas不足。請嘗試增加Gas限制');
+      } else if (error.message && error.message.includes("revert")) {
+        alert('交易被回滾：合約執行失敗。可能是餘額不足或您不是受益人');
+      } else {
+        alert('提取資金失敗：' + (error.message || '未知錯誤'));
+      }
+      
+      // 如果有交易回執，記錄它
+      if (error.receipt) {
+        console.error("交易回執:", error.receipt);
+      }
+      
+      throw error; // 重新拋出錯誤，讓調用者處理
     } finally {
       setLoading(false);
     }
@@ -612,9 +671,9 @@ function App() {
       console.log("交易參數:", transactionParameters);
       console.log("調用合約recordExpense方法...");
       
-      // 執行記錄支出交易
+      // 執行記錄支出交易，確保使用字符串處理項目ID
       await contract.methods.recordExpense(
-        projectId,
+        projectId.toString(),
         description,
         amountInWei,
         recipient

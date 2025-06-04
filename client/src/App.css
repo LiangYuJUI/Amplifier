@@ -565,84 +565,168 @@ body::before {
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
   padding: 30px;
-  margin-top: 30px;
+  margin: 20px 0;
   position: relative;
+  overflow: hidden;
 }
 
-.project-details h2 {
-  margin-top: 20px;
-  margin-bottom: 25px;
-  color: var(--dark-text);
-  font-size: 2rem;
+.project-details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
 }
 
-.project-details .project-info {
-  margin-bottom: 30px;
-}
-
-.project-details .project-description {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  margin-bottom: 25px;
-  color: var(--medium-text);
-}
-
-.project-details .project-stats {
+.project-header {
   display: flex;
-  justify-content: space-around;
-  background-color: var(--light-bg);
-  padding: 20px;
-  border-radius: var(--border-radius);
-  margin-bottom: 25px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.project-details .stat {
-  text-align: center;
-}
-
-.project-details .stat-label {
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-
-.project-details .stat-value {
-  font-size: 1.4rem;
+.project-header h2 {
+  font-size: 1.8rem;
+  margin: 0;
+  color: var(--dark-text);
   font-weight: 700;
 }
 
-.project-meta {
-  margin-top: 20px;
-  font-size: 0.95rem;
-  color: var(--light-text);
+.project-description {
+  margin-bottom: 25px;
+  color: var(--medium-text);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.project-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.info-card {
   background-color: var(--light-bg);
   padding: 15px;
   border-radius: var(--border-radius);
+  transition: var(--transition);
 }
 
-.project-meta p {
+.info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.info-label {
+  font-size: 0.9rem;
+  color: var(--light-text);
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.project-meta p:last-child {
-  margin-bottom: 0;
+.info-value {
+  font-size: 1.2rem;
+  color: var(--dark-text);
+  font-weight: 700;
+}
+
+.usd-value {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  margin-top: 5px;
+}
+
+.beneficiary-address {
+  font-family: monospace;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.you-badge {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.project-progress {
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  height: 12px;
+  background-color: var(--light-bg);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 6px;
+  transition: width 0.6s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.1)
+  );
+  transform: translateX(-100%);
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--medium-text);
+  font-weight: 600;
 }
 
 .project-actions {
   display: flex;
-  margin: 30px 0;
   gap: 15px;
+  margin-bottom: 30px;
 }
 
 .beneficiary-section {
-  margin-top: 40px;
-  padding-top: 30px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--light-bg);
+  border-radius: var(--border-radius);
+  padding: 25px;
+  margin-bottom: 30px;
+  border-left: 4px solid var(--primary-color);
 }
 
 .beneficiary-section h3 {
-  margin-bottom: 25px;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
   color: var(--dark-text);
-  font-size: 1.5rem;
   position: relative;
   padding-bottom: 10px;
 }
@@ -652,40 +736,93 @@ body::before {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 40px;
+  width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  border-radius: 3px;
+  background: var(--primary-color);
+}
+
+.available-balance-info {
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.available-balance-info h4 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: var(--dark-text);
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.balance-amount {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.balance-usd {
+  color: var(--light-text);
+  font-size: 0.9rem;
+}
+
+.btn-refresh-balance {
+  background-color: transparent;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.btn-refresh-balance:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+  transform: rotate(180deg);
 }
 
 .withdraw-section, .expense-section {
-  background-color: var(--light-bg);
-  padding: 25px;
+  background-color: white;
   border-radius: var(--border-radius);
-  margin-bottom: 25px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .withdraw-section h4, .expense-section h4 {
-  margin-bottom: 20px;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
   color: var(--dark-text);
-  font-size: 1.2rem;
 }
 
 .records-section {
-  margin-top: 40px;
-  padding-top: 30px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 30px;
 }
 
 .donations-section, .expenses-section {
-  margin-bottom: 40px;
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
 }
 
 .donations-section h3, .expenses-section h3 {
+  font-size: 1.3rem;
   margin-bottom: 20px;
   color: var(--dark-text);
-  font-size: 1.5rem;
   position: relative;
   padding-bottom: 10px;
 }
@@ -695,132 +832,214 @@ body::before {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 40px;
+  width: 50px;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  border-radius: 3px;
+  background: var(--primary-color);
 }
 
 .donations-list, .expenses-list {
   list-style: none;
+  padding: 0;
 }
 
 .donation-item, .expense-item {
   background-color: var(--light-bg);
-  padding: 20px;
   border-radius: var(--border-radius);
+  padding: 15px;
   margin-bottom: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
   transition: var(--transition);
 }
 
 .donation-item:hover, .expense-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .donation-info, .expense-info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .donation-amount, .expense-amount {
   font-weight: 700;
-  color: var(--dark-text);
+  color: var(--primary-color);
   font-size: 1.1rem;
 }
 
-.donation-message {
-  font-style: italic;
+.donation-donor, .expense-description {
+  color: var(--dark-text);
+  font-weight: 600;
+}
+
+.donation-time, .expense-time {
   color: var(--light-text);
-  margin-top: 10px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+}
+
+.donation-message {
+  background-color: white;
   padding: 10px;
-  background-color: rgba(255, 255, 255, 0.5);
   border-radius: var(--border-radius);
+  color: var(--medium-text);
+  margin-top: 10px;
+  font-style: italic;
+  position: relative;
+  padding-left: 20px;
+}
+
+.donation-message::before {
+  content: '"';
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  color: var(--light-text);
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 .expense-recipient {
+  color: var(--light-text);
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background-color: rgba(46, 204, 113, 0.15);
+  color: var(--secondary-dark);
+}
+
+.status-badge.inactive {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: var(--danger-color);
+}
+
+.loading-inline {
   font-size: 0.9rem;
   color: var(--light-text);
+  font-style: italic;
 }
 
-.no-projects {
-  text-align: center;
-  padding: 50px 0;
+.error-badge {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--danger-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+
+.input-with-max {
+  display: flex;
+  align-items: center;
+}
+
+.input-with-max input {
+  flex: 1;
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+.btn-max {
+  background-color: var(--light-bg);
+  border: 1px solid #ddd;
+  border-left: none;
+  color: var(--primary-color);
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  transition: var(--transition);
+}
+
+.btn-max:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.combined-action-section {
+  background-color: rgba(52, 152, 219, 0.05);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px dashed var(--primary-color);
+}
+
+.combined-action-section h4 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: var(--dark-text);
+}
+
+.combined-action-section p {
   color: var(--light-text);
-  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
 }
 
-.no-projects i {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  color: rgba(0, 0, 0, 0.1);
+.btn-combined-action {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
 }
 
-/* 響應式設計 */
-@media (max-width: 992px) {
-  .projects-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* 響應式調整 */
 @media (max-width: 768px) {
-  .projects-grid {
+  .project-info {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .records-section {
     grid-template-columns: 1fr;
   }
   
-  .app-header .container {
+  .donation-info, .expense-info {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
   }
   
-  .account-info {
-    margin-top: 15px;
-  }
-  
-  .project-details .project-stats {
+  .balance-display {
     flex-direction: column;
-    gap: 15px;
+    align-items: flex-start;
   }
   
   .project-actions {
     flex-direction: column;
-    gap: 10px;
   }
   
   .project-actions button {
     width: 100%;
   }
-  
-  .form-actions {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .form-actions button {
-    width: 100%;
-    margin-right: 0;
-  }
-  
-  .donation-info, .expense-info {
-    flex-direction: column;
-    gap: 5px;
-  }
 }
 
 @media (max-width: 480px) {
-  .app-header h1 {
-    font-size: 1.5rem;
+  .project-info {
+    grid-template-columns: 1fr;
   }
   
-  .project-details h2 {
-    font-size: 1.6rem;
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
   
-  .beneficiary-section h3, .donations-section h3, .expenses-section h3 {
-    font-size: 1.3rem;
+  .beneficiary-section {
+    padding: 15px;
   }
 }
 
@@ -1647,144 +1866,4 @@ body::before {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-}
-
-/* 提取資金並記錄支出按鈕 */
-.combined-action-section {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: rgba(52, 152, 219, 0.05);
-  border-radius: var(--border-radius);
-  border-left: 4px solid var(--primary-color);
-}
-
-.combined-action-section h4 {
-  color: var(--primary-color);
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-}
-
-.combined-action-section p {
-  margin-bottom: 15px;
-  color: var(--medium-text);
-  font-size: 0.9rem;
-}
-
-.btn-combined-action {
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  padding: 12px 20px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
-}
-
-.btn-combined-action:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
-}
-
-.btn-combined-action:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-combined-action i {
-  font-size: 1.1rem;
-}
-
-/* 可提取資金餘額顯示樣式 */
-.available-balance-info {
-  background-color: #f8f9fa;
-  border-left: 4px solid var(--secondary-color);
-  padding: 20px;
-  margin-bottom: 25px;
-  border-radius: var(--border-radius);
-}
-
-.available-balance-info h4 {
-  margin-bottom: 15px;
-  color: var(--dark-text);
-  font-size: 1.2rem;
-}
-
-.balance-display {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.balance-amount {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--secondary-color);
-}
-
-.balance-usd {
-  font-size: 1rem;
-  color: var(--light-text);
-}
-
-.btn-refresh-balance {
-  background: none;
-  border: none;
-  color: var(--light-text);
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  transition: var(--transition);
-  margin-left: auto;
-}
-
-.btn-refresh-balance:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--primary-color);
-}
-
-.input-with-max {
-  position: relative;
-  display: flex;
-}
-
-.input-with-max input {
-  width: 100%;
-  padding-right: 60px;
-}
-
-.btn-max {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: var(--light-bg);
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-max:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .balance-display {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .btn-refresh-balance {
-    margin-left: 0;
-    margin-top: 10px;
-  }
 }

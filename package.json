@@ -1,0 +1,47 @@
+{
+  "name": "amplifier",
+  "version": "1.0.0",
+  "description": "Blockchain-based transparent charity donation platform",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test",
+    "test:coverage": "truffle run coverage",
+    "compile": "truffle compile",
+    "migrate": "truffle migrate",
+    "migrate:reset": "truffle migrate --reset",
+    "deploy": "./deploy-contract.sh",
+    "start:ganache": "./start-ganache.sh",
+    "start:frontend": "./start-frontend.sh",
+    "start:all": "./start-all.sh",
+    "lint:solidity": "solhint 'contracts/**/*.sol'",
+    "lint:js": "eslint . --ext .js",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^4.8.0",
+    "@openzeppelin/test-helpers": "^0.5.16",
+    "@truffle/hdwallet-provider": "^2.1.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.36.0",
+    "prettier": "^2.8.7",
+    "solhint": "^3.4.1",
+    "solidity-coverage": "^0.8.2",
+    "truffle": "^5.8.1",
+    "web3": "^1.8.0"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "charity",
+    "donation",
+    "transparency",
+    "web3",
+    "dapp"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
+

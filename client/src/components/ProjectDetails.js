@@ -33,7 +33,13 @@ function ProjectDetails({
   // 使用Web3.utils而不是依賴window.web3，並格式化ETH金額顯示
   const fromWei = (value) => {
     try {
-      const ethValue = Web3.utils.fromWei(value.toString(), 'ether');
+      // 確保值是字符串，以處理大數值
+      const valueStr = value ? value.toString() : '0';
+      if (valueStr === '0') return '0';
+      
+      // 使用Web3.utils.fromWei轉換
+      const ethValue = Web3.utils.fromWei(valueStr, 'ether');
+      
       // 格式化ETH金額，顯示最多4位小數
       return parseFloat(parseFloat(ethValue).toFixed(4)).toString();
     } catch (error) {
@@ -75,16 +81,21 @@ function ProjectDetails({
       // 計算總支出金額
       let totalExpenses = 0;
       expensesArray.forEach(expense => {
-        totalExpenses += Number(expense.amount);
+        // 確保使用字符串處理大數值
+        totalExpenses = Web3.utils.toBN(totalExpenses).add(Web3.utils.toBN(expense.amount)).toString();
       });
       
-      // 計算可用餘額
-      const availableBalanceWei = Number(totalDonated) - totalExpenses;
-      const availableBalanceEth = fromWei(availableBalanceWei.toString());
+      // 計算可用餘額 - 使用 BN 處理大數值
+      const totalDonatedBN = Web3.utils.toBN(totalDonated);
+      const totalExpensesBN = Web3.utils.toBN(totalExpenses);
+      const availableBalanceWei = totalDonatedBN.sub(totalExpensesBN).toString();
+      
+      // 轉換為ETH
+      const availableBalanceEth = fromWei(availableBalanceWei);
       
       console.log("總捐款金額(wei):", totalDonated);
-      console.log("總支出金額(wei):", totalExpenses.toString());
-      console.log("可用餘額(wei):", availableBalanceWei.toString());
+      console.log("總支出金額(wei):", totalExpenses);
+      console.log("可用餘額(wei):", availableBalanceWei);
       console.log("可用餘額(ETH):", availableBalanceEth);
       
       return availableBalanceEth;
@@ -160,19 +171,45 @@ function ProjectDetails({
         setExpenses(expensesArray);
         console.log("支出記錄加載完成:", expensesArray.length);
         
-        // 計算可用餘額
-        const balance = calculateAvailableBalance(donations, expensesArray);
-        setAvailableBalance(balance);
-        
-        // 計算USD價值
+        // 從合約獲取項目可用餘額
         try {
-          const balanceUsd = await ethToUsd(balance);
-          setAvailableBalanceUsd(balanceUsd);
-        } catch (usdError) {
-          console.error("計算餘額USD價值錯誤:", usdError);
-          // 使用預設匯率
-          const defaultRate = 3000;
-          setAvailableBalanceUsd(parseFloat(balance) * defaultRate);
+          // 使用正確的函數獲取項目可用餘額，確保使用字符串處理項目ID
+          const availableBalanceWei = await contract.methods.getAvailableBalance(project.id.toString()).call();
+          console.log("項目可用餘額(wei):", availableBalanceWei);
+          
+          // 轉換為ETH
+          const availableBalanceEth = fromWei(availableBalanceWei);
+          console.log("項目可用餘額(ETH):", availableBalanceEth);
+          
+          setAvailableBalance(availableBalanceEth);
+          
+          // 計算USD價值
+          try {
+            const balanceUsd = await ethToUsd(availableBalanceEth);
+            setAvailableBalanceUsd(balanceUsd);
+          } catch (usdError) {
+            console.error("計算餘額USD價值錯誤:", usdError);
+            // 使用預設匯率
+            const defaultRate = 3000;
+            setAvailableBalanceUsd(parseFloat(availableBalanceEth) * defaultRate);
+          }
+        } catch (balanceError) {
+          console.error("獲取項目餘額錯誤:", balanceError);
+          
+          // 如果無法直接從合約獲取餘額，則使用計算方法
+          const calculatedBalance = calculateAvailableBalance(donations, expensesArray);
+          setAvailableBalance(calculatedBalance);
+          
+          // 計算USD價值
+          try {
+            const balanceUsd = await ethToUsd(calculatedBalance);
+            setAvailableBalanceUsd(balanceUsd);
+          } catch (usdError) {
+            console.error("計算餘額USD價值錯誤:", usdError);
+            // 使用預設匯率
+            const defaultRate = 3000;
+            setAvailableBalanceUsd(parseFloat(calculatedBalance) * defaultRate);
+          }
         }
       } catch (expenseError) {
         console.error("加載支出記錄錯誤:", expenseError);
@@ -205,6 +242,13 @@ function ProjectDetails({
         console.log("轉換後的ETH目標:", ethGoal);
         console.log("轉換後的ETH籌集:", ethRaised);
         
+        // 如果項目有預先計算的可用餘額，直接使用
+        if (project.availableBalance) {
+          console.log("使用項目預先計算的可用餘額:", project.availableBalance);
+          const availableBalanceEth = fromWei(project.availableBalance);
+          setAvailableBalance(availableBalanceEth);
+        }
+        
         try {
           const usdGoal = await ethToUsd(ethGoal);
           const usdRaised = await ethToUsd(ethRaised);
@@ -216,6 +260,12 @@ function ProjectDetails({
             goal: usdGoal,
             raised: usdRaised
           });
+          
+          // 如果已設置可用餘額，計算其USD價值
+          if (availableBalance !== '0') {
+            const balanceUsd = await ethToUsd(availableBalance);
+            setAvailableBalanceUsd(balanceUsd);
+          }
         } catch (conversionError) {
           console.error("ETH到USD轉換錯誤:", conversionError);
           setUsdError(true);
@@ -226,6 +276,11 @@ function ProjectDetails({
             goal: parseFloat(ethGoal) * defaultRate,
             raised: parseFloat(ethRaised) * defaultRate
           });
+          
+          // 如果已設置可用餘額，計算其USD價值
+          if (availableBalance !== '0') {
+            setAvailableBalanceUsd(parseFloat(availableBalance) * defaultRate);
+          }
         }
       } catch (error) {
         console.error("加載USD價格錯誤:", error);
@@ -431,6 +486,29 @@ function ProjectDetails({
     loadRates();
   };
   
+  // 格式化日期時間顯示
+  const formatDate = (timestamp) => {
+    try {
+      if (!timestamp) return '未知時間';
+      
+      const date = new Date(Number(timestamp) * 1000);
+      
+      // 檢查日期是否有效
+      if (isNaN(date.getTime())) return '未知時間';
+      
+      return date.toLocaleString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('日期格式化錯誤:', error);
+      return '未知時間';
+    }
+  };
+  
   if (!project) {
     return <div>加載中...</div>;
   }
@@ -447,95 +525,77 @@ function ProjectDetails({
         <i className="fas fa-arrow-left"></i> 返回項目列表
       </button>
       
-      <h2>{project.name}</h2>
+      <div className="project-header">
+        <h2>{project.name}</h2>
+        <div className={`status-badge ${project.isActive ? 'active' : 'inactive'}`}>
+          {project.isActive ? '活躍' : '已關閉'}
+        </div>
+      </div>
+      
+      <div className="project-description">
+        <p>{project.description}</p>
+      </div>
       
       <div className="project-info">
-        <p className="project-description">{project.description}</p>
-        
-        <div className="project-progress">
-          <div className="progress-info">
-            <span>
-              已籌集: {fromWei(project.totalDonated)} ETH
-              <span className="usd-value">
-                {loadingUsd ? (
-                  <span className="loading-inline">計算中...</span>
-                ) : (
-                  <>
-                    ({usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'})
-                    {usdError && <span className="error-badge">估計</span>}
-                  </>
-                )}
-              </span>
-            </span>
-            <span>
-              目標: {fromWei(project.fundraisingGoal)} ETH
-              <span className="usd-value">
-                {loadingUsd ? (
-                  <span className="loading-inline">計算中...</span>
-                ) : (
-                  <>
-                    ({usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'})
-                    {usdError && <span className="error-badge">估計</span>}
-                  </>
-                )}
-              </span>
-            </span>
-          </div>
-          <div className="progress-bar">
-            <div 
-              className={`progress-bar-fill ${calculateProgress() >= 100 ? 'completed' : ''}`}
-              style={{width: `${Math.min(calculateProgress(), 100)}%`}}
-            ></div>
-          </div>
-          <div className="progress-percentage">
-            {formatProgress(calculateProgress())}
+        <div className="info-card">
+          <div className="info-label">目標金額</div>
+          <div className="info-value">
+            {fromWei(project.fundraisingGoal)} ETH
+            <div className="usd-value">
+              {loadingUsd ? (
+                <span className="loading-inline">計算中...</span>
+              ) : (
+                <>
+                  {usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'}
+                  {usdError && <span className="error-badge">估計</span>}
+                </>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="project-stats">
-          <div className="stat">
-            <span className="stat-label">目標金額</span>
-            <span className="stat-value">
-              {fromWei(project.fundraisingGoal)} ETH
-              <div className="usd-value">
-                {loadingUsd ? (
-                  <span className="loading-inline">計算中...</span>
-                ) : (
-                  <>
-                    {usdValues.goal ? formatUsd(usdValues.goal) : 'N/A'}
-                    {usdError && <span className="error-badge">估計</span>}
-                  </>
-                )}
-              </div>
-            </span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">已籌集</span>
-            <span className="stat-value">
-              {fromWei(project.totalDonated)} ETH
-              <div className="usd-value">
-                {loadingUsd ? (
-                  <span className="loading-inline">計算中...</span>
-                ) : (
-                  <>
-                    {usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'}
-                    {usdError && <span className="error-badge">估計</span>}
-                  </>
-                )}
-              </div>
-            </span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">狀態</span>
-            <span className={`stat-value ${project.isActive ? 'active' : 'inactive'}`}>
-              {project.isActive ? '活躍' : '已關閉'}
-            </span>
+        <div className="info-card">
+          <div className="info-label">已籌集</div>
+          <div className="info-value">
+            {fromWei(project.totalDonated)} ETH
+            <div className="usd-value">
+              {loadingUsd ? (
+                <span className="loading-inline">計算中...</span>
+              ) : (
+                <>
+                  {usdValues.raised ? formatUsd(usdValues.raised) : 'N/A'}
+                  {usdError && <span className="error-badge">估計</span>}
+                </>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="project-meta">
-          <p><strong>受益人:</strong> <span className="address-text">{project.beneficiary}</span></p>
-          <p><strong>創建時間:</strong> {project.createdAt}</p>
+        <div className="info-card">
+          <div className="info-label">受益人</div>
+          <div className="info-value beneficiary-address">
+            {project.beneficiary.substring(0, 6)}...{project.beneficiary.substring(project.beneficiary.length - 4)}
+            {isBeneficiary && <span className="you-badge">你</span>}
+          </div>
+        </div>
+        
+        <div className="info-card">
+          <div className="info-label">創建時間</div>
+          <div className="info-value">
+            {formatDate(project.createdAt)}
+          </div>
+        </div>
+      </div>
+      
+      <div className="project-progress">
+        <div className="progress-bar">
+          <div 
+            className="progress-fill" 
+            style={{width: `${Math.min(calculateProgress(), 100)}%`}}
+          ></div>
+        </div>
+        <div className="progress-text">
+          {formatProgress(calculateProgress())}
         </div>
       </div>
       
@@ -560,9 +620,9 @@ function ProjectDetails({
         )}
       </div>
       
-      {isBeneficiary && (
+      {(isBeneficiary || isOwner) && (
         <div className="beneficiary-section">
-          <h3>受益人操作</h3>
+          <h3>{isBeneficiary ? '受益人操作' : '管理員操作'}</h3>
           
           <div className="available-balance-info">
             <h4>可提取資金餘額</h4>
@@ -625,64 +685,68 @@ function ProjectDetails({
             </form>
           </div>
           
-          <div className="expense-section">
-            <h4>記錄支出</h4>
-            <form onSubmit={handleRecordExpense}>
-              <div className="form-group">
-                <label htmlFor="description">支出描述</label>
-                <input
-                  type="text"
-                  id="description"
-                  name="description"
-                  value={expenseData.description}
-                  onChange={handleExpenseChange}
-                  placeholder="支出用途"
-                  required
-                />
+          {isBeneficiary && (
+            <>
+              <div className="expense-section">
+                <h4>記錄支出</h4>
+                <form onSubmit={handleRecordExpense}>
+                  <div className="form-group">
+                    <label htmlFor="description">支出描述</label>
+                    <input
+                      type="text"
+                      id="description"
+                      name="description"
+                      value={expenseData.description}
+                      onChange={handleExpenseChange}
+                      placeholder="支出用途"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="amount">支出金額 (ETH)</label>
+                    <input
+                      type="number"
+                      id="amount"
+                      name="amount"
+                      value={expenseData.amount}
+                      onChange={handleExpenseChange}
+                      placeholder="例如：0.2"
+                      step="0.01"
+                      min="0"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="recipient">接收者地址</label>
+                    <input
+                      type="text"
+                      id="recipient"
+                      name="recipient"
+                      value={expenseData.recipient}
+                      onChange={handleExpenseChange}
+                      placeholder="0x..."
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary">
+                    記錄支出
+                  </button>
+                </form>
               </div>
-              <div className="form-group">
-                <label htmlFor="amount">支出金額 (ETH)</label>
-                <input
-                  type="number"
-                  id="amount"
-                  name="amount"
-                  value={expenseData.amount}
-                  onChange={handleExpenseChange}
-                  placeholder="例如：0.2"
-                  step="0.01"
-                  min="0"
-                  required
-                />
+              
+              <div className="combined-action-section">
+                <h4>提取資金並記錄支出</h4>
+                <p>使用上面填寫的提取金額和支出信息，一次性完成提取和記錄</p>
+                <button 
+                  className="btn btn-primary btn-combined-action"
+                  onClick={handleWithdrawAndRecord}
+                  disabled={!withdrawAmount || !expenseData.description || !expenseData.recipient || parseFloat(availableBalance) <= 0}
+                >
+                  <i className="fas fa-exchange-alt"></i> 提取並記錄
+                </button>
               </div>
-              <div className="form-group">
-                <label htmlFor="recipient">接收者地址</label>
-                <input
-                  type="text"
-                  id="recipient"
-                  name="recipient"
-                  value={expenseData.recipient}
-                  onChange={handleExpenseChange}
-                  placeholder="0x..."
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                記錄支出
-              </button>
-            </form>
-          </div>
-          
-          <div className="combined-action-section">
-            <h4>提取資金並記錄支出</h4>
-            <p>使用上面填寫的提取金額和支出信息，一次性完成提取和記錄</p>
-            <button 
-              className="btn btn-primary btn-combined-action"
-              onClick={handleWithdrawAndRecord}
-              disabled={!withdrawAmount || !expenseData.description || !expenseData.recipient || parseFloat(availableBalance) <= 0}
-            >
-              <i className="fas fa-exchange-alt"></i> 提取並記錄
-            </button>
-          </div>
+            </>
+          )}
         </div>
       )}
       
@@ -700,7 +764,7 @@ function ProjectDetails({
                   <div className="donation-info">
                     <span className="donation-amount">{Web3.utils.fromWei(donation.amount.toString(), 'ether')} ETH</span>
                     <span className="donation-donor">{donation.donor.substring(0, 6)}...{donation.donor.substring(donation.donor.length - 4)}</span>
-                    <span className="donation-time">{new Date(Number(donation.timestamp) * 1000).toLocaleString()}</span>
+                    <span className="donation-time">{formatDate(donation.timestamp)}</span>
                   </div>
                   {donation.message && (
                     <p className="donation-message">{donation.message}</p>
@@ -724,7 +788,7 @@ function ProjectDetails({
                   <div className="expense-info">
                     <span className="expense-amount">{Web3.utils.fromWei(expense.amount.toString(), 'ether')} ETH</span>
                     <span className="expense-description">{expense.description}</span>
-                    <span className="expense-time">{new Date(Number(expense.timestamp) * 1000).toLocaleString()}</span>
+                    <span className="expense-time">{formatDate(expense.timestamp)}</span>
                   </div>
                   <div className="expense-recipient">
                     <span>接收者: {expense.recipient.substring(0, 6)}...{expense.recipient.substring(expense.recipient.length - 4)}</span>

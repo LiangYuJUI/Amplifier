@@ -45,6 +45,9 @@ contract CharityDonation {
     // 項目ID到支出數組的映射
     mapping(uint256 => Expense[]) public expenses;
     
+    // 項目ID到已提取金額的映射
+    mapping(uint256 => uint256) public withdrawnAmounts;
+    
     // 項目總數
     uint256 public projectCount;
     
@@ -70,6 +73,15 @@ contract CharityDonation {
     // 修飾符：只有項目受益人可以調用
     modifier onlyBeneficiary(uint256 _projectId) {
         require(msg.sender == projects[_projectId].beneficiary, "Only project beneficiary can call this function");
+        _;
+    }
+    
+    // 修飾符：只有合約擁有者或項目受益人可以調用
+    modifier onlyOwnerOrBeneficiary(uint256 _projectId) {
+        require(
+            msg.sender == owner || msg.sender == projects[_projectId].beneficiary, 
+            "Only contract owner or project beneficiary can call this function"
+        );
         _;
     }
     
@@ -132,16 +144,22 @@ contract CharityDonation {
     }
     
     /**
-     * @dev 受益人提取資金
+     * @dev 提取資金（合約擁有者或受益人可以調用）
      */
-    function withdrawFunds(uint256 _projectId, uint256 _amount) public projectExists(_projectId) onlyBeneficiary(_projectId) {
+    function withdrawFunds(uint256 _projectId, uint256 _amount) public projectExists(_projectId) onlyOwnerOrBeneficiary(_projectId) {
         CharityProject storage project = projects[_projectId];
         
         require(_amount > 0, "Withdrawal amount must be greater than 0");
         require(_amount <= address(this).balance, "Insufficient contract balance");
-        require(_amount <= project.totalDonated, "Insufficient project balance");
         
-        // 轉移資金
+        // 檢查可用餘額（總捐款 - 已提取金額）
+        uint256 availableBalance = project.totalDonated - withdrawnAmounts[_projectId];
+        require(_amount <= availableBalance, "Insufficient available project balance");
+        
+        // 更新已提取金額
+        withdrawnAmounts[_projectId] += _amount;
+        
+        // 轉移資金到受益人地址（無論是誰調用這個函數）
         project.beneficiary.transfer(_amount);
         
         emit FundsWithdrawn(_projectId, project.beneficiary, _amount);
@@ -187,6 +205,20 @@ contract CharityDonation {
      */
     function getExpenseCount(uint256 _projectId) public view projectExists(_projectId) returns (uint256) {
         return expenses[_projectId].length;
+    }
+    
+    /**
+     * @dev 獲取項目可用餘額
+     */
+    function getAvailableBalance(uint256 _projectId) public view projectExists(_projectId) returns (uint256) {
+        return projects[_projectId].totalDonated - withdrawnAmounts[_projectId];
+    }
+    
+    /**
+     * @dev 獲取項目已提取金額
+     */
+    function getWithdrawnAmount(uint256 _projectId) public view projectExists(_projectId) returns (uint256) {
+        return withdrawnAmounts[_projectId];
     }
     
     /**
