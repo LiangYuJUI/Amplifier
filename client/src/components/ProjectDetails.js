@@ -183,32 +183,53 @@ function ProjectDetails({
           
           setAvailableBalance(availableBalanceEth);
           
-          // 計算USD價值
-          try {
-            const balanceUsd = await ethToUsd(availableBalanceEth);
-            setAvailableBalanceUsd(balanceUsd);
-          } catch (usdError) {
-            console.error("計算餘額USD價值錯誤:", usdError);
-            // 使用預設匯率
-            const defaultRate = 3000;
-            setAvailableBalanceUsd(parseFloat(availableBalanceEth) * defaultRate);
+          // 計算USD價值 - 確保數值有效
+          if (parseFloat(availableBalanceEth) > 0) {
+            try {
+              console.log("開始計算可提取資金餘額的USD價值...");
+              const balanceUsd = await ethToUsd(availableBalanceEth);
+              console.log("可提取資金餘額USD價值:", balanceUsd);
+              setAvailableBalanceUsd(balanceUsd);
+            } catch (usdError) {
+              console.error("計算餘額USD價值錯誤:", usdError);
+              // 使用預設匯率
+              const defaultRate = 3000;
+              const estimatedUsd = parseFloat(availableBalanceEth) * defaultRate;
+              console.log("使用預設匯率計算USD價值:", estimatedUsd);
+              setAvailableBalanceUsd(estimatedUsd);
+              setUsdError(true);
+            }
+          } else {
+            console.log("可提取資金餘額為零，不需要計算USD價值");
+            setAvailableBalanceUsd(0);
           }
         } catch (balanceError) {
           console.error("獲取項目餘額錯誤:", balanceError);
           
           // 如果無法直接從合約獲取餘額，則使用計算方法
           const calculatedBalance = calculateAvailableBalance(donations, expensesArray);
+          console.log("使用計算方法獲得的可提取資金餘額(ETH):", calculatedBalance);
           setAvailableBalance(calculatedBalance);
           
-          // 計算USD價值
-          try {
-            const balanceUsd = await ethToUsd(calculatedBalance);
-            setAvailableBalanceUsd(balanceUsd);
-          } catch (usdError) {
-            console.error("計算餘額USD價值錯誤:", usdError);
-            // 使用預設匯率
-            const defaultRate = 3000;
-            setAvailableBalanceUsd(parseFloat(calculatedBalance) * defaultRate);
+          // 計算USD價值 - 確保數值有效
+          if (parseFloat(calculatedBalance) > 0) {
+            try {
+              console.log("開始計算計算得出的可提取資金餘額的USD價值...");
+              const balanceUsd = await ethToUsd(calculatedBalance);
+              console.log("計算得出的可提取資金餘額USD價值:", balanceUsd);
+              setAvailableBalanceUsd(balanceUsd);
+            } catch (usdError) {
+              console.error("計算餘額USD價值錯誤:", usdError);
+              // 使用預設匯率
+              const defaultRate = 3000;
+              const estimatedUsd = parseFloat(calculatedBalance) * defaultRate;
+              console.log("使用預設匯率計算USD價值:", estimatedUsd);
+              setAvailableBalanceUsd(estimatedUsd);
+              setUsdError(true);
+            }
+          } else {
+            console.log("計算得出的可提取資金餘額為零，不需要計算USD價值");
+            setAvailableBalanceUsd(0);
           }
         }
       } catch (expenseError) {
@@ -312,6 +333,7 @@ function ProjectDetails({
     }
     
     try {
+      // 提取資金並自動記錄支出
       await withdrawFunds(project.id, parseFloat(withdrawAmount));
       
       // 清空表單數據
@@ -321,7 +343,7 @@ function ProjectDetails({
       await loadData();
       
       // 顯示成功消息
-      alert('提取資金成功！');
+      alert('提取資金成功！已自動記錄支出');
     } catch (error) {
       console.error("提取資金時發生錯誤:", error);
       alert('提取資金失敗: ' + (error.message || '未知錯誤'));
@@ -633,7 +655,7 @@ function ProjectDetails({
                   <span className="loading-inline">計算中...</span>
                 ) : (
                   <>
-                    ({availableBalanceUsd ? formatUsd(availableBalanceUsd) : 'N/A'})
+                    ({availableBalanceUsd !== null && availableBalanceUsd !== undefined ? formatUsd(availableBalanceUsd) : 'N/A'})
                     {usdError && <span className="error-badge">估計</span>}
                   </>
                 )}

@@ -591,7 +591,7 @@ function App() {
   };
   
   // 提取資金（僅限受益人）
-  const withdrawFunds = async (projectId, amount) => {
+  const withdrawFunds = async (projectId, amount, description = null, recipient = null) => {
     try {
       setLoading(true);
       console.log("開始提取資金...");
@@ -620,8 +620,57 @@ function App() {
       
       console.log("提取資金成功!");
       
+      // 如果提供了描述和接收者，同時記錄支出
+      if (description && recipient) {
+        console.log("同時記錄支出...");
+        console.log("描述:", description);
+        console.log("接收者:", recipient);
+        
+        try {
+          // 執行記錄支出交易
+          await contract.methods.recordExpense(
+            projectId.toString(),
+            description,
+            amountInWei,
+            recipient
+          ).send(transactionParameters);
+          
+          console.log("支出記錄成功!");
+        } catch (expenseError) {
+          console.error("記錄支出錯誤:", expenseError);
+          alert('提取資金成功，但記錄支出失敗: ' + (expenseError.message || '未知錯誤'));
+        }
+      } else {
+        // 如果沒有提供描述和接收者，則自動記錄支出
+        try {
+          // 使用默認描述和當前用戶地址作為接收者
+          const defaultDescription = "資金提取";
+          const defaultRecipient = accounts[0];
+          
+          console.log("自動記錄支出...");
+          console.log("默認描述:", defaultDescription);
+          console.log("默認接收者:", defaultRecipient);
+          
+          // 執行記錄支出交易
+          await contract.methods.recordExpense(
+            projectId.toString(),
+            defaultDescription,
+            amountInWei,
+            defaultRecipient
+          ).send(transactionParameters);
+          
+          console.log("自動支出記錄成功!");
+        } catch (autoExpenseError) {
+          console.error("自動記錄支出錯誤:", autoExpenseError);
+          // 這裡我們不向用戶顯示錯誤，因為提取資金已經成功
+          console.warn("提取資金成功，但自動記錄支出失敗");
+        }
+      }
+      
       // 重新加載項目列表
       await loadProjects(contract, web3);
+      
+      return true;
     } catch (error) {
       console.error("提取資金錯誤:", error);
       

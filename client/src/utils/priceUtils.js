@@ -134,24 +134,59 @@ export const getEthToUsdRate = async (forceRefresh = false) => {
 // ETH轉換為USD
 export const ethToUsd = async (ethAmount) => {
   try {
-    if (!ethAmount || isNaN(ethAmount) || parseFloat(ethAmount) <= 0) {
+    // 檢查輸入是否有效
+    if (ethAmount === null || ethAmount === undefined) {
+      console.warn('ETH金額為null或undefined，返回0');
       return 0;
     }
     
-    // 確保ethAmount是數字
-    const amount = parseFloat(ethAmount);
+    // 確保ethAmount是字符串並嘗試轉換為數字
+    const ethAmountStr = ethAmount.toString();
+    const amount = parseFloat(ethAmountStr);
+    
+    // 檢查轉換後的數字是否有效
+    if (isNaN(amount) || amount <= 0) {
+      console.warn(`無效的ETH金額: ${ethAmountStr}，返回0`);
+      return 0;
+    }
+    
+    console.log(`嘗試轉換 ${amount} ETH 為 USD...`);
+    
+    // 獲取匯率
     const result = await getEthToUsdRate();
+    
+    // 檢查匯率是否有效
+    if (!result || !result.price || isNaN(result.price)) {
+      console.warn('獲取到無效的匯率，使用預設匯率');
+      const defaultRate = 3000;
+      const estimatedUsd = amount * defaultRate;
+      console.log(`使用預設匯率: ${amount} ETH = ${estimatedUsd} USD (預設匯率: ${defaultRate})`);
+      return estimatedUsd;
+    }
+    
+    // 計算USD價值
     const usdValue = amount * result.price;
     
-    console.log(`${amount} ETH = ${usdValue} USD (匯率: ${result.price})`);
+    console.log(`${amount} ETH = ${usdValue} USD (匯率: ${result.price}${result.isSimulated ? ', 模擬' : ''})`);
     return usdValue;
   } catch (error) {
     console.error('ETH到USD轉換錯誤:', error);
-    // 返回估計值而不是null，避免顯示N/A
-    const defaultRate = 3000;
-    const estimatedUsd = parseFloat(ethAmount) * defaultRate;
-    console.log(`使用預設匯率: ${parseFloat(ethAmount)} ETH = ${estimatedUsd} USD (預設匯率: ${defaultRate})`);
-    return estimatedUsd;
+    
+    // 嘗試從錯誤中恢復
+    try {
+      // 確保我們有一個有效的數字
+      const safeAmount = parseFloat(ethAmount) || 0;
+      if (safeAmount <= 0) return 0;
+      
+      // 使用預設匯率
+      const defaultRate = 3000;
+      const estimatedUsd = safeAmount * defaultRate;
+      console.log(`錯誤恢復: ${safeAmount} ETH = ${estimatedUsd} USD (預設匯率: ${defaultRate})`);
+      return estimatedUsd;
+    } catch (recoveryError) {
+      console.error('無法從ETH到USD轉換錯誤中恢復:', recoveryError);
+      return 0; // 最後的後備值
+    }
   }
 };
 
