@@ -22,5 +22,13 @@ echo ""
 echo "按 Ctrl+C 可停止 Ganache 服務"
 echo "=============================================="
 
+# 創建數據庫目錄（如果不存在）
+mkdir -p ./ganache-db
+
 # 啟動Ganache (前台執行，方便查看日誌)
-npx ganache --port $PORT --mnemonic "$MNEMONIC" --chain.chainId $CHAIN_ID --network-id $NETWORK_ID --db.directory ./ganache-db 
+npx ganache \
+  --port $PORT \
+  --mnemonic "$MNEMONIC" \
+  --chain.chainId $CHAIN_ID \
+  --network-id $NETWORK_ID \
+  --database.dbPath ./ganache-db 
